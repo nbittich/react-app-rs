@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  backend:
+    build: ./backend/.
+    environment:
+      ADDR: 0.0.0.0:80
+    ports:
+      - 8080:80
+  frontend:
+    build: ./frontend/.
+    ports:
+      - 8081:80
