@@ -1,6 +1,5 @@
 use std::net::SocketAddr;
 
-use axum::Router;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
@@ -15,10 +14,7 @@ async fn main() {
 
     let socket_addr: SocketAddr = addr.parse().expect("unable to parse socket address");
 
-    let app = Router::new()
-        .merge(router::todos_list(pool_db.clone()))
-        .merge(router::delete_todo(pool_db.clone()))
-        .merge(router::new_todo(pool_db.clone()));
+    let app = router::get_router(pool_db);
 
     tracing::info!("listening on {:?}", socket_addr);
 

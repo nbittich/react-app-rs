@@ -15,10 +15,11 @@ use db_layer::{
 use serde_json::json;
 use tower_http::cors::{CorsLayer, Any};
 
-pub fn route(path: &str, method_router: MethodRouter) -> Router {
-    
+pub fn get_router(pool_db: Pool<ConnectionManager<SqliteConnection>>) -> Router{
     Router::new()
-    .route(path, method_router)
+    .merge(todos_list(pool_db.clone()))
+    .merge(delete_todo(pool_db.clone()))
+    .merge(new_todo(pool_db.clone()))
     .layer(
         CorsLayer::new()
             .allow_origin(Any)
@@ -26,8 +27,13 @@ pub fn route(path: &str, method_router: MethodRouter) -> Router {
     )
 }
 
+fn route(path: &str, method_router: MethodRouter) -> Router {
+    Router::new()
+    .route(path, method_router)
+}
+
 #[tracing::instrument(skip_all)]
-pub fn todos_list(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
+fn todos_list(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
     route(
         "/todos",
         get(|| async move {
@@ -40,7 +46,7 @@ pub fn todos_list(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
 }
 
 #[tracing::instrument(skip_all)]
-pub fn new_todo(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
+fn new_todo(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
     route(
         "/new-todo",
         post(|Form(input): Form<TodoForm>| async move {
@@ -68,7 +74,7 @@ pub fn new_todo(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
 }
 
 #[tracing::instrument(skip_all)]
-pub fn delete_todo(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
+fn delete_todo(pool: Pool<ConnectionManager<SqliteConnection>>) -> Router {
     route(
         "/delete-todo/:todo_id",
         axum::routing::delete(|Path(todo_id): Path<i32>| async move {
